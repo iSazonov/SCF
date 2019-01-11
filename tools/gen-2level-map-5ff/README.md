@@ -1,0 +1,1 @@
+Generate array for 1-level simple case folding mapping (chars < 0x5ff).

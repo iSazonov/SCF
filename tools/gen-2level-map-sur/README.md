@@ -1,0 +1,1 @@
+Generate array for 2-level simple case folding surrogate mapping

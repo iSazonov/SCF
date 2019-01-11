@@ -1,0 +1,1 @@
+Generate arrays for 2-level simple case folding mapping.
