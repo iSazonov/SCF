@@ -26,17 +26,19 @@ namespace System.Management.Automation.Unicode
         {
             if (c <= 0x5ff)
             {
-                return (char)MapBelow5FF[c];
+                return MapBelow5FF[c];
             }
 
-            //var v = L1[c >> 8];
-            //var ch = L3[v + (c & 0xFF)];
+            // var v = L1[c >> 8];
+            // var ch = L3[v + (c & 0xFF)];
+            // Still slow due to border checks.
             var v = Unsafe.Add(ref s_MapLevel1, c >> 8);
             var ch = Unsafe.Add(ref s_refMapData, v + (c & 0xFF));
 
             return ch == 0 ? c : ch;
         }
 
+        // Mapping for chars > 0x5ff slowly due to 2-level mapping.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int SimpleCaseFoldCompareAbove05ff(char c1, char c2, ref ushort refMapLevel1, ref char refMapData)
         {
@@ -57,46 +59,32 @@ namespace System.Management.Automation.Unicode
             return ch1 - ch2;
         }
 
+        // Mapping for surrogate chars slowly due to 2-level mapping.
+        // For comparison we can ignore UNICODE_PLANE01_START
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int SimpleCaseFoldCompareSurrogates(char c1, char c2, ref ushort refMapLevel1, ref int refMapData)
+        private static int SimpleCaseFoldCompareSurrogates(int c1, int c2, ref ushort refMapLevel1, ref (char, char) refMapData)
         {
-            var v1 =  Unsafe.Add(ref refMapLevel1, c1 >> 8);
-            var ch1 = Unsafe.Add(ref refMapData, v1 + (c1 & 0xFF));
-            if (ch1 == 0)
+            if (c1 <= 0xFFFF)
             {
-                ch1 = c1;
+                var v1 = Unsafe.Add(ref refMapLevel1, c1 >> 8);
+                var ch1 = Unsafe.Add(ref refMapData, v1 + (c1 & 0xFF));
+                if (ch1 != (0, 0))
+                {
+                    c1 = ((ch1.Item2 - HIGH_SURROGATE_START) * 0x400) + (ch1.Item1 - LOW_SURROGATE_START);
+                }
             }
 
-            var v2 =  Unsafe.Add(ref refMapLevel1, c2 >> 8);
-            var ch2 = Unsafe.Add(ref refMapData, v2 + (c2 & 0xFF));
-            if (ch2 == 0)
+            if (c2 <= 0xFFFF)
             {
-                ch2 = c2;
+                var v1 = Unsafe.Add(ref refMapLevel1, c2 >> 8);
+                var ch2 = Unsafe.Add(ref refMapData, v1 + (c2 & 0xFF));
+                if (ch2 != (0, 0))
+                {
+                    c2 = ((ch2.Item2 - HIGH_SURROGATE_START) * 0x400) + (ch2.Item1 - LOW_SURROGATE_START);
+                }
             }
 
-            return ch1 - ch2;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int SimpleCaseFoldCompare(char c1, char c2)
-        {
-            ref ushort refMapLevel1 = ref s_MapLevel1;
-            ref char refMapData = ref s_refMapData;
-
-            var v1 =  Unsafe.Add(ref refMapLevel1, c1 >> 8);
-            var ch1 = Unsafe.Add(ref refMapData, v1 + (c1 & 0xFF));
-            if (ch1 == 0)
-            {
-                ch1 = c1;
-            }
-            var v2 =  Unsafe.Add(ref refMapLevel1, c2 >> 8);
-            var ch2 = Unsafe.Add(ref refMapData, v2 + (c2 & 0xFF));
-            if (ch2 == 0)
-            {
-                ch2 = c2;
-            }
-
-            return ch1 - ch2;
+            return c1 - c2;
         }
 
         /// <summary>
@@ -146,8 +134,8 @@ namespace System.Management.Automation.Unicode
             var result = lengthA - lengthB;
             var length = Math.Min(lengthA, lengthB);
 
-            //var l0AsSpan = MapBelow5FF.AsSpan();
-            //ref char refMapBelow5FF = ref MemoryMarshal.GetReference(l0AsSpan);
+            // var l0AsSpan = MapBelow5FF.AsSpan();
+            // ref char refMapBelow5FF = ref MemoryMarshal.GetReference(l0AsSpan);
             ref char refMapBelow5FF = ref MapBelow5FF[0];
 
             // For char below 0x5ff use fastest 1-level mapping.
@@ -192,21 +180,20 @@ namespace System.Management.Automation.Unicode
                 }
             }
 
-
             if (length == 0)
             {
                 return result;
             }
-
-            return result;
 /*
+            return -1;
+*/
             return CompareUsingSimpleCaseFolding(
                         ref refA,
                         ref refB,
                         result,
                         length,
                         ref refMapBelow5FF);
-*/
+
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -219,26 +206,9 @@ namespace System.Management.Automation.Unicode
             ref ushort refMapLevel1 = ref s_MapLevel1;
             ref char refMapData = ref s_refMapData;
 
-            // We catch a char above 0x5ff.
-            // Process it with more slow two-level mapping.
-            while (length != 0 && !IsSurrogate(refA) && !IsSurrogate(refB))
-            {
-                var compare2 = SimpleCaseFoldCompareAbove05ff(refA, refB, ref refMapLevel1, ref refMapData);
-
-                if (compare2 == 0)
-                {
-                    length--;
-                    refA = ref Unsafe.Add(ref refA, 1);
-                    refB = ref Unsafe.Add(ref refB, 1);
-                }
-                else
-                {
-                    return compare2;
-                }
-            }
-
             ref ushort refMapSurrogateLevel1 = ref s_refMapSurrogateLevel1;
-            ref int refMapSurrogateData = ref Unsafe.As<(char, char), int>(ref s_refMapSurrogateData);
+            ref (char, char) refMapSurrogateData = ref s_refMapSurrogateData;
+            // ref int refMapSurrogateData = ref Unsafe.As<(char, char), int>(ref s_refMapSurrogateData);
 
             while (length != 0)
             {
@@ -271,11 +241,11 @@ namespace System.Management.Automation.Unicode
                         return -1;
                     }
 
-                    // The index is Utf32 - 0x10000 (UNICODE_PLANE01_START)
+                    // The index is Utf32 minus 0x10000 (UNICODE_PLANE01_START)
                     var index1 = ((c1 - HIGH_SURROGATE_START) * 0x400) + (c1Low - LOW_SURROGATE_START);
                     var index2 = ((c2 - HIGH_SURROGATE_START) * 0x400) + (c2Low - LOW_SURROGATE_START);
 
-                    var compare4 = SimpleCaseFoldCompareSurrogates((char)index1, (char)index2, ref refMapSurrogateLevel1, ref refMapSurrogateData);;
+                    var compare4 = SimpleCaseFoldCompareSurrogates(index1, index2, ref refMapSurrogateLevel1, ref refMapSurrogateData);
 
                     if (compare4 != 0)
                     {
@@ -289,7 +259,7 @@ namespace System.Management.Automation.Unicode
                 }
                 else
                 {
-                    if (isHighSurrogateA || isHighSurrogateB)
+                    if (isHighSurrogateA ^ isHighSurrogateB)
                     {
                         // Only one char is a surrogate.
                         return isHighSurrogateA ? 1 : -1;
@@ -348,11 +318,11 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
-        ///  Simple case folding of the string.
+        /// Simple case folding of the string.
         /// </summary>
         /// <param name="source">Source string.</param>
         /// <returns>
-        /// Returns folded string.
+        /// Returns new allocated folded string.
         /// </returns>
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SimpleCaseFold(this string source)
@@ -367,9 +337,9 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
-        ///  Simple case folding of the Span&lt;char&gt;.
+        /// Simple case folding of the Span&lt;char&gt; on place.
         /// </summary>
-        /// <param name="source">Source string.</param>
+        /// <param name="source">Source and target span.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SimpleCaseFold(this Span<char> source)
         {
@@ -377,11 +347,11 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
-        ///  Simple case folding of the ReadOnlySpan&lt;char&gt;.
+        /// Simple case folding of the ReadOnlySpan&lt;char&gt;.
         /// </summary>
-        /// <param name="source">Source string.</param>
+        /// <param name="source">Source span.</param>
         /// <returns>
-        /// Returns folded string.
+        /// Returns new allocated folded span.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Span<char> SimpleCaseFold(this ReadOnlySpan<char> source)
@@ -394,10 +364,13 @@ namespace System.Management.Automation.Unicode
         }
 
         /// <summary>
+        /// Simple case folding of the ReadOnlySpan&lt;char&gt;.
         /// </summary>
+        /// <param name="source">Destination span.</param>
+        /// <param name="source">Source span.</param>
         public static void SpanSimpleCaseFold(Span<char> destination, ReadOnlySpan<char> source)
         {
-            //Diagnostics.Assert(destination.Length >= source.Length, "Destination span length must be equal or greater then source span length.");
+            // Diagnostics.Assert(destination.Length >= source.Length, "Destination span length must be equal or greater then source span length.");
             ref char res = ref MemoryMarshal.GetReference(destination);
             ref char src = ref MemoryMarshal.GetReference(source);
 
@@ -407,19 +380,19 @@ namespace System.Management.Automation.Unicode
 
             for (; i < length; i++)
             {
-                //var ch = source[i];
+                // var ch = source[i];
                 ch = Unsafe.Add(ref src, i);
 
                 if (IsAscii(ch))
                 {
                     if ((uint)(ch - 'A') <= (uint)('Z' - 'A'))
                     {
-                        //destination[i] = (char)(ch | 0x20);
+                        // destination[i] = (char)(ch | 0x20);
                         Unsafe.Add(ref res, i) = (char)(ch | 0x20);
                     }
                     else
                     {
-                         //destination[i] = ch;
+                         // destination[i] = ch;
                          Unsafe.Add(ref res, i) = ch;
                     }
 
@@ -428,9 +401,9 @@ namespace System.Management.Automation.Unicode
 
                 if (!IsSurrogate(ch))
                 {
-                    //destination[i] = (char)s_simpleCaseFoldingTableBMPane1[ch];
-                    //Unsafe.Add(ref res, i) = s_simpleCaseFoldingTableBMPane1[ch];
-                    //Unsafe.Add(ref res, i) = simpleCaseFoldingTableBMPane1[ch];
+                    // destination[i] = (char)s_simpleCaseFoldingTableBMPane1[ch];
+                    // Unsafe.Add(ref res, i) = s_simpleCaseFoldingTableBMPane1[ch];
+                    // Unsafe.Add(ref res, i) = simpleCaseFoldingTableBMPane1[ch];
                     Unsafe.Add(ref res, i) = SimpleCaseFold(ch);
                 }
                 else
