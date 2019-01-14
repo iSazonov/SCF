@@ -327,6 +327,11 @@ namespace System.Management.Automation.Unicode
         //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SimpleCaseFold(this string source)
         {
+            if (source == null || source.Length == 0)
+            {
+                return source;
+            }
+
             return string.Create(
                 source.Length,
                 source,
@@ -370,6 +375,12 @@ namespace System.Management.Automation.Unicode
         /// <param name="source">Source span.</param>
         public static void SpanSimpleCaseFold(Span<char> destination, ReadOnlySpan<char> source)
         {
+            if (source.Length == 0)
+            {
+                destination.Clear();
+                return;
+            }
+
             // Diagnostics.Assert(destination.Length >= source.Length, "Destination span length must be equal or greater then source span length.");
             ref char res = ref MemoryMarshal.GetReference(destination);
             ref char src = ref MemoryMarshal.GetReference(source);

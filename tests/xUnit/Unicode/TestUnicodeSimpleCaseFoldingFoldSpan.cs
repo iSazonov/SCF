@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Management.Automation.Unicode;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Management.Automation.Unicode;
+using System.Management.Automation.Unicode.Tests;
 using Xunit;
 
 namespace PSTests.Parallel.System.Management.Automation.Unicode
@@ -29,14 +32,39 @@ namespace PSTests.Parallel.System.Management.Automation.Unicode
         }
 
         [Theory]
+        [InlineData(null, null)]
+        [InlineData("", "")]
         [InlineData("Hello", "hello")]
         [InlineData("Turkish I \u0131s TROUBL\u0130NG!", "turkish i \u0131s troubl\u0130ng!")]
-        public static void Fold_String_And_Span(string s, string target)
+        public static void Fold_String(string s, string target)
         {
             Assert.Equal(0, String.CompareOrdinal(s.SimpleCaseFold(), target));
+        }
 
+        [Theory]
+        [InlineData("", "")]
+        [InlineData("Hello", "hello")]
+        [InlineData("Turkish I \u0131s TROUBL\u0130NG!", "turkish i \u0131s troubl\u0130ng!")]
+        public static void Fold_Span(string s, string target)
+        {
             Assert.Equal(0, String.CompareOrdinal(s.AsSpan().SimpleCaseFold().ToString(), target));
             Assert.Equal(0, s.AsSpan().SimpleCaseFold().SequenceCompareTo(target.AsSpan()));
+        }
+
+        [Fact]
+        public static void Fold_String_By_Char()
+        {
+            for (int i = 0; i <= 0xffff; i++)
+            {
+                var expected = i;
+                if (CharUnicodeInfoTestData.CaseFoldingPairs.TryGetValue((char)i, out int foldedCharOut))
+                {
+                    expected = foldedCharOut;
+                }
+
+                var foldedChar = (int)SimpleCaseFolding.SimpleCaseFold((char)i);
+                Assert.Equal(((char)expected).ToString(), ((char)foldedChar).ToString());
+            }
         }
     }
 }
