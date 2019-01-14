@@ -375,6 +375,11 @@ namespace System.Management.Automation.Unicode
         /// <param name="source">Source span.</param>
         public static void SpanSimpleCaseFold(Span<char> destination, ReadOnlySpan<char> source)
         {
+            if (source.Length > destination.Length)
+            {
+                return; // throw?
+            }
+
             if (source.Length == 0)
             {
                 destination.Clear();
@@ -382,76 +387,149 @@ namespace System.Management.Automation.Unicode
             }
 
             // Diagnostics.Assert(destination.Length >= source.Length, "Destination span length must be equal or greater then source span length.");
-            ref char res = ref MemoryMarshal.GetReference(destination);
+            ref char dst = ref MemoryMarshal.GetReference(destination);
             ref char src = ref MemoryMarshal.GetReference(source);
 
             var length = source.Length;
-            int i = 0;
-            var ch = src;
 
-            for (; i < length; i++)
+            // var l0AsSpan = MapBelow5FF.AsSpan();
+            // ref char refMapBelow5FF = ref MemoryMarshal.GetReference(l0AsSpan);
+            ref char refMapBelow5FF = ref MapBelow5FF[0];
+
+            // For char below 0x5ff use fastest 1-level mapping.
+            while (length != 0 && src <= MaxChar)
             {
-                // var ch = source[i];
-                ch = Unsafe.Add(ref src, i);
+                dst = Unsafe.Add(ref refMapBelow5FF, src);
+                src = ref Unsafe.Add(ref src, 1);
+                dst = ref Unsafe.Add(ref dst, 1);
+                length--;
+            }
 
-                if (IsAscii(ch))
+            if (length == 0)
+            {
+                return;
+            }
+
+            ref ushort refMapLevel1 = ref s_MapLevel1;
+            ref char refMapData = ref s_refMapData;
+
+            // We catch a char above 0x5ff.
+            // Process it with more slow two-level mapping.
+            while (length != 0 && !IsSurrogate(src))
+            {
+                var v1 =  Unsafe.Add(ref refMapLevel1, src >> 8);
+                var ch1 = Unsafe.Add(ref refMapData, v1 + (src & 0xFF));
+                if (ch1 == 0)
                 {
-                    if ((uint)(ch - 'A') <= (uint)('Z' - 'A'))
-                    {
-                        // destination[i] = (char)(ch | 0x20);
-                        Unsafe.Add(ref res, i) = (char)(ch | 0x20);
-                    }
-                    else
-                    {
-                         // destination[i] = ch;
-                         Unsafe.Add(ref res, i) = ch;
-                    }
-
-                    continue;
+                    ch1 = src;
                 }
 
-                if (!IsSurrogate(ch))
+                dst = ch1;
+                src = ref Unsafe.Add(ref src, 1);
+                dst = ref Unsafe.Add(ref dst, 1);
+                length--;
+            }
+
+            if (length == 0)
+            {
+                return;
+            }
+
+            ref ushort refMapSurrogateLevel1 = ref s_refMapSurrogateLevel1;
+            ref (char, char) refMapSurrogateData = ref s_refMapSurrogateData;
+
+            while (length != 0)
+            {
+                // We catch a high or low surrogate.
+                // Process it and fallback to fastest options.
+                var c1 = src;
+                var isHighSurrogateA = IsHighSurrogate(c1);
+
+                if (isHighSurrogateA)
                 {
-                    // destination[i] = (char)s_simpleCaseFoldingTableBMPane1[ch];
-                    // Unsafe.Add(ref res, i) = s_simpleCaseFoldingTableBMPane1[ch];
-                    // Unsafe.Add(ref res, i) = simpleCaseFoldingTableBMPane1[ch];
-                    Unsafe.Add(ref res, i) = SimpleCaseFold(ch);
-                }
-                else
-                {
-                    if ((i + 1) < length)
+                    // Get low surrogates.
+                    length--;
+                    if (length == 0)
                     {
-                        var ch2 = Unsafe.Add(ref src, 1);
-                        if ((ch2 >= LOW_SURROGATE_START) && (ch2 <= LOW_SURROGATE_END))
+                        // No low surrogate - throw?
+                        return;
+                    }
+
+                    src = ref Unsafe.Add(ref src, 1);
+                    var c1Low = src;
+
+                    if (!IsLowSurrogate(c1Low))
+                    {
+                        // No low surrogate - throw?
+                        return;
+                    }
+
+                    // The index is Utf32 minus 0x10000 (UNICODE_PLANE01_START)
+                    var index1 = ((c1 - HIGH_SURROGATE_START) * 0x400) + (c1Low - LOW_SURROGATE_START);
+
+                    if (index1 <= 0xFFFF)
+                    {
+                        var v1 = Unsafe.Add(ref refMapSurrogateLevel1, index1 >> 8);
+                        var ch1 = Unsafe.Add(ref refMapSurrogateData, v1 + (index1 & 0xFF));
+                        if (ch1 != (0, 0))
                         {
-                            // The index is Utf32 - 0x10000 (UNICODE_PLANE01_START)
-                            // We subtract 0x10000 because we packed Plane01 (from 65536 to 131071)
-                            // to an array with size uint (index from 0 to 65535).
-                            var index = ((ch - HIGH_SURROGATE_START) * 0x400) + (ch2 - LOW_SURROGATE_START);
-
-                            // The utf32 is Utf32 - 0x10000 (UNICODE_PLANE01_START)
-                            var utf32 = SimpleCaseFold((char)index);
-                            Unsafe.Add(ref res, i) = (char)((utf32 / 0x400) + (int)HIGH_SURROGATE_START);
-                            i++;
-                            Unsafe.Add(ref res, i) = (char)((utf32 % 0x400) + (int)LOW_SURROGATE_START);
+                            dst = ch1.Item2;
+                            dst = ref Unsafe.Add(ref dst, 1);
+                            dst = ch1.Item1;
                         }
                         else
                         {
-                            // Broken unicode - throw?
-                            // We expect a low surrogate on (i + 1) position but get a full char
-                            // so we copy a high surrogate and convert the full char.
-                            Unsafe.Add(ref res, i) = ch;
-                            i++;
-                            Unsafe.Add(ref res, i) = SimpleCaseFold(ch);
+                            dst = c1;
+                            dst = ref Unsafe.Add(ref dst, 1);
+                            dst = c1Low;
                         }
                     }
-                    else
+
+                    // Move to next char.
+                    length--;
+                    src = ref Unsafe.Add(ref src, 1);
+                    dst = ref Unsafe.Add(ref dst, 1);
+                }
+                else
+                {
+                    // We expect a high surrogate but get a low surrogate - throw?
+                    return;
+                }
+
+                // For char below 0x5ff use fastest 1-level mapping.
+                while (length != 0 && src <= MaxChar)
+                {
+                    dst = Unsafe.Add(ref refMapBelow5FF, src);
+                    src = ref Unsafe.Add(ref src, 1);
+                    dst = ref Unsafe.Add(ref dst, 1);
+                    length--;
+                }
+
+                if (length == 0)
+                {
+                    return;
+                }
+
+                // We catch a char above 0x5ff.
+                // Process it with more slow two-level mapping.
+                while (length != 0 && !IsSurrogate(src))
+                {
+                    var v1 =  Unsafe.Add(ref refMapLevel1, src >> 8);
+                    var ch1 = Unsafe.Add(ref refMapData, v1 + (src & 0xFF));
+                    if (ch1 == 0)
                     {
-                        // Broken unicode - throw?
-                        // We catch a surrogate on last position but we had to process it on previous step (i-1)
-                        // so we copy the surrogate.
-                        Unsafe.Add(ref res, i) = ch;
+                        ch1 = src;
                     }
+
+                    dst = ch1;
+                    src = ref Unsafe.Add(ref src, 1);
+                    dst = ref Unsafe.Add(ref dst, 1);
+                    length--;
+                }
+
+                if (length == 0)
+                {
+                    return;
                 }
             }
         }

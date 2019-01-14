@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Management.Automation.Unicode;
 using System.Management.Automation.Unicode.Tests;
 using Xunit;
@@ -22,6 +23,28 @@ namespace PSTests.Parallel.System.Management.Automation.Unicode
 
                 var foldedChar = (int)SimpleCaseFolding.SimpleCaseFold((char)i);
                 Assert.Equal(expected, foldedChar);
+            }
+        }
+
+        [Fact]
+        public static void Fold_Char_Surrogate()
+        {
+            for (int i = 0x10000; i <= 0x1ffff; i++)
+            {
+                var expected = i;
+                if (CharUnicodeInfoTestData.CaseFoldingPairs.TryGetValue(i, out int foldedOut))
+                {
+                    expected = foldedOut;
+                }
+
+                var expectedString = Char.ConvertFromUtf32(expected);
+                var value = Char.ConvertFromUtf32(i);
+                var foldedString = SimpleCaseFolding.SimpleCaseFold(value);
+                if (expectedString != foldedString)
+                {
+                    Console.WriteLine("Q");
+                }
+                Assert.Equal(expectedString, foldedString);
             }
         }
     }
