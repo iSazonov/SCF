@@ -18,8 +18,8 @@ namespace System.Management.Automation.Unicode
         public static void Main(string[] args)
         {
             var summary = BenchmarkRunner.Run<IntroBenchmarkBaseline>();
-            Console.WriteLine("Result: {0}", SimpleCaseFolding.SimpleCaseFold("cASEfOLDING2"));
-            Console.WriteLine("Result: {0}", SimpleCaseFolding.SimpleCaseFold("яЯяЯяЯяЯяЯя2"));
+            //Console.WriteLine("Result: {0}", SCFMarvin.ComputeHash32OrdinalIgnoreCase1("cASEfOLDING2", SCFMarvin.DefaultSeed));
+            //Console.WriteLine("Result: {0}", SCFMarvin.ComputeHash32OrdinalIgnoreCase1("яЯяЯяЯяЯяЯя2", SCFMarvin.DefaultSeed));
         }
     }
 
@@ -29,23 +29,16 @@ namespace System.Management.Automation.Unicode
     {
         [Benchmark(Baseline = true)]
         [ArgumentsSource(nameof(Data))]
-        public string CoreFXToUpperInvariant(string StrA)
+        public int CoreFXMarvinOrdinalIgnoreCase(string StrA)
         {
-            return StrA.ToUpperInvariant();
+            return Marvin.ComputeHash32OrdinalIgnoreCase(StrA, Marvin.DefaultSeed);
         }
 
         [Benchmark]
         [ArgumentsSource(nameof(Data))]
-        public string CoreFXToLowerInvariant(string StrA)
+        public int SCFMarvinOrdinalIgnoreCase(string StrA)
         {
-            return StrA.ToLowerInvariant();
-        }
-
-        [Benchmark]
-        [ArgumentsSource(nameof(Data))]
-        public string SimpleCaseFold(string StrA)
-        {
-            return SimpleCaseFolding.SimpleCaseFold(StrA);
+            return SCFMarvin.ComputeHash32OrdinalIgnoreCase1(StrA, SCFMarvin.DefaultSeed);
         }
 
         public IEnumerable<object> Data()
