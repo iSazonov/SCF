@@ -226,7 +226,7 @@ namespace System.Management.Automation.Unicode
                     if (length == 0)
                     {
                         // No low surrogate - throw?
-                        return -1;
+                        throw new ArgumentNullException("Low surrogate is expected.");
                     }
 
                     refA = ref Unsafe.Add(ref refA, 1);
@@ -237,7 +237,7 @@ namespace System.Management.Automation.Unicode
                     if (!IsLowSurrogate(c1Low) || !IsLowSurrogate(c2Low))
                     {
                         // No low surrogate - throw?
-                        return -1;
+                        throw new ArgumentNullException("Low surrogate is expected.");
                     }
 
                     // The index is Utf32 minus 0x10000 (UNICODE_PLANE01_START)
@@ -266,7 +266,7 @@ namespace System.Management.Automation.Unicode
                     else
                     {
                         // We expect a high surrogate but get a low surrogate - throw?
-                        return -1;
+                        throw new ArgumentNullException("High surrogate is expected.");
                     }
                 }
 
@@ -376,7 +376,7 @@ namespace System.Management.Automation.Unicode
         {
             if (source.Length > destination.Length)
             {
-                return; // throw?
+                throw new ArgumentNullException(nameof(destination)); // throw?
             }
 
             if (source.Length == 0)
@@ -451,7 +451,7 @@ namespace System.Management.Automation.Unicode
                     if (length == 0)
                     {
                         // No low surrogate - throw?
-                        return;
+                        throw new ArgumentNullException("Low surrogate is expected.");
                     }
 
                     src = ref Unsafe.Add(ref src, 1);
@@ -460,7 +460,7 @@ namespace System.Management.Automation.Unicode
                     if (!IsLowSurrogate(c1Low))
                     {
                         // No low surrogate - throw?
-                        return;
+                        throw new ArgumentNullException("Low surrogate is expected.");
                     }
 
                     // The index is Utf32 minus 0x10000 (UNICODE_PLANE01_START)
@@ -492,7 +492,7 @@ namespace System.Management.Automation.Unicode
                 else
                 {
                     // We expect a high surrogate but get a low surrogate - throw?
-                    return;
+                    throw new ArgumentNullException("High surrogate is expected.");
                 }
 
                 // For char below 0x5ff use fastest 1-level mapping.
