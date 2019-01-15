@@ -198,7 +198,8 @@ namespace System.Management.Automation.Unicode
         private static int CompareUsingSimpleCaseFolding(
             ref char refA,
             ref char refB,
-            int result, int length)
+            int result,
+            int length)
         {
             ref char refMapBelow5FF = ref MapBelow5FF[0];
 
