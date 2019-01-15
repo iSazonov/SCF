@@ -191,18 +191,17 @@ namespace System.Management.Automation.Unicode
                         ref refA,
                         ref refB,
                         result,
-                        length,
-                        ref refMapBelow5FF);
-
+                        length);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int CompareUsingSimpleCaseFolding(
             ref char refA,
             ref char refB,
-            int result, int length,
-            ref char refMapBelow5FF)
+            int result, int length)
         {
+            ref char refMapBelow5FF = ref MapBelow5FF[0];
+
             ref ushort refMapLevel1 = ref s_MapLevel1;
             ref char refMapData = ref s_refMapData;
 
