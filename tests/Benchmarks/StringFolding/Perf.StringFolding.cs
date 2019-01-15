@@ -31,23 +31,22 @@ namespace System.Management.Automation.Unicode
     {
         [Benchmark(Baseline = true)]
         [ArgumentsSource(nameof(Data))]
-        public void CoreFXCompare(string StrA, string StrB)
+        public string CoreFXCompare(string StrA)
         {
-            string.Compare(StrA, StrB, StringComparison.OrdinalIgnoreCase);
+            return StrA.ToUpperInvariant();
         }
 
         [Benchmark]
         [ArgumentsSource(nameof(Data))]
-        public int SimpleCaseFoldCompare(string StrA, string StrB)
+        public string SimpleCaseFoldCompare(string StrA)
         {
-            var comparer = new StringComparerUsingSimpleCaseFolding();
-            return comparer.Compare(StrA, StrB);
+            return SimpleCaseFolding.SimpleCaseFold(StrA);
         }
 
-        public IEnumerable<object[]> Data()
+        public IEnumerable<object> Data()
         {
-            yield return new object[] { "CaseFolding1", "cASEfOLDING2" };
-            yield return new object[] { "ЯяЯяЯяЯяЯяЯ1", "яЯяЯяЯяЯяЯя2" };
+            yield return "CaseFolding1";
+            yield return "ЯяЯяЯяЯяЯяЯ1";
         }
     }
 }
