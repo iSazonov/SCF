@@ -726,7 +726,7 @@ namespace System.Management.Automation.Unicode
 
             SimpleCaseFolding.SpanSimpleCaseFold(span, source);
 
-            int hash = HashByteArray(MemoryMarshal.AsBytes(span));
+            int hash = SCFMarvin.ComputeHash32OrdinalIgnoreCase(span, SCFMarvin.DefaultSeed);
 
             // Return the borrowed array if necessary.
             if (borrowedArr != null)
