@@ -18,7 +18,7 @@ namespace System.Management.Automation.Unicode
         private static ref ushort s_MapLevel1 => ref MapLevel1[0];
         private static ref char s_refMapData => ref MapData[0];
         private static ref ushort s_refMapSurrogateLevel1 => ref MapSurrogateLevel1[0];
-        private static ref (char, char) s_refMapSurrogateData => ref MapSurrogateData[0];
+        private static ref (char highSurrogate, char lowSurrogate) s_refMapSurrogateData => ref MapSurrogateData[0];
 
         /// <summary>
         /// </summary>
@@ -62,7 +62,7 @@ namespace System.Management.Automation.Unicode
         // Mapping for surrogate chars slowly due to 2-level mapping.
         // For comparison we can ignore UNICODE_PLANE01_START
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int SimpleCaseFoldCompareSurrogates(int c1, int c2, ref ushort refMapLevel1, ref (char, char) refMapData)
+        private static int SimpleCaseFoldCompareSurrogates(int c1, int c2, ref ushort refMapLevel1, ref (char highSurrogate, char lowSurrogate) refMapData)
         {
             if (c1 <= 0xFFFF)
             {
@@ -70,7 +70,7 @@ namespace System.Management.Automation.Unicode
                 var ch1 = Unsafe.Add(ref refMapData, v1 + (c1 & 0xFF));
                 if (ch1 != (0, 0))
                 {
-                    c1 = ((ch1.Item2 - HIGH_SURROGATE_START) * 0x400) + (ch1.Item1 - LOW_SURROGATE_START);
+                    c1 = ((ch1.highSurrogate - HIGH_SURROGATE_START) * 0x400) + (ch1.lowSurrogate - LOW_SURROGATE_START);
                 }
             }
 
@@ -80,7 +80,7 @@ namespace System.Management.Automation.Unicode
                 var ch2 = Unsafe.Add(ref refMapData, v1 + (c2 & 0xFF));
                 if (ch2 != (0, 0))
                 {
-                    c2 = ((ch2.Item2 - HIGH_SURROGATE_START) * 0x400) + (ch2.Item1 - LOW_SURROGATE_START);
+                    c2 = ((ch2.highSurrogate - HIGH_SURROGATE_START) * 0x400) + (ch2.lowSurrogate - LOW_SURROGATE_START);
                 }
             }
 
@@ -207,7 +207,7 @@ namespace System.Management.Automation.Unicode
             ref char refMapData = ref s_refMapData;
 
             ref ushort refMapSurrogateLevel1 = ref s_refMapSurrogateLevel1;
-            ref (char, char) refMapSurrogateData = ref s_refMapSurrogateData;
+            ref (char highSurrogate, char lowSurrogate) refMapSurrogateData = ref s_refMapSurrogateData;
             // ref int refMapSurrogateData = ref Unsafe.As<(char, char), int>(ref s_refMapSurrogateData);
 
             while (length != 0)
@@ -436,7 +436,7 @@ namespace System.Management.Automation.Unicode
             }
 
             ref ushort refMapSurrogateLevel1 = ref s_refMapSurrogateLevel1;
-            ref (char, char) refMapSurrogateData = ref s_refMapSurrogateData;
+            ref var refMapSurrogateData = ref s_refMapSurrogateData;
 
             while (length != 0)
             {
@@ -473,9 +473,9 @@ namespace System.Management.Automation.Unicode
                         var ch1 = Unsafe.Add(ref refMapSurrogateData, v1 + (index1 & 0xFF));
                         if (ch1 != (0, 0))
                         {
-                            dst = ch1.Item2;
+                            dst = ch1.highSurrogate;
                             dst = ref Unsafe.Add(ref dst, 1);
-                            dst = ch1.Item1;
+                            dst = ch1.lowSurrogate;
                         }
                         else
                         {

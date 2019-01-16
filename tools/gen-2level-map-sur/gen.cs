@@ -209,7 +209,7 @@ namespace CaseFolding
             {
                 // Output low surrogate,then high surrogate.
                 // This allow to compare as uint.
-                s = new ushort[2] {surrogates[1], surrogates[0]};
+                s = new ushort[2] {surrogates[0], surrogates[1]};
             }
 
             Console.Write($"\n    ((char)0x{s[0]:x4}, (char)0x{s[1]:x4}), ");
@@ -223,7 +223,7 @@ namespace CaseFolding
                 }
                 else
                 {
-                    s = new ushort[2] {surrogates[1], surrogates[0]};
+                    s = new ushort[2] {surrogates[0], surrogates[1]};
                 }
 
                 Console.Write($"((char)0x{s[0]:x4}, (char)0x{s[1]:x4}), ");
