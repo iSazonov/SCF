@@ -38,7 +38,7 @@ namespace System.Management.Automation.Unicode
         [ArgumentsSource(nameof(Data))]
         public int SCFMarvinOrdinalIgnoreCase(string StrA)
         {
-            return SCFMarvin.ComputeHash32OrdinalIgnoreCase1(StrA, SCFMarvin.DefaultSeed);
+            return SCFMarvin.ComputeHash32OrdinalIgnoreCase(StrA, SCFMarvin.DefaultSeed);
         }
 
         public IEnumerable<object> Data()

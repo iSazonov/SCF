@@ -18,13 +18,13 @@ namespace System.Management.Automation.Unicode
         /// Compute a Marvin hash and collapse it into a 32-bit hash.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ComputeHash32OrdinalIgnoreCase1(ReadOnlySpan<char> data, ulong seed) => ComputeHash32OrdinalIgnoreCase1(ref MemoryMarshal.GetReference(data), data.Length, (uint)seed, (uint)(seed >> 32));
+        public static int ComputeHash32OrdinalIgnoreCase(ReadOnlySpan<char> data, ulong seed) => ComputeHash32OrdinalIgnoreCase(ref MemoryMarshal.GetReference(data), data.Length, (uint)seed, (uint)(seed >> 32));
 
         /// <summary>
         /// Compute a Marvin OrdinalIgnoreCase hash and collapse it into a 32-bit hash.
         /// n.b. <paramref name="count"/> is specified as char count, not byte count.
         /// </summary>
-        public static int ComputeHash32OrdinalIgnoreCase1(ref char data, int count, uint p0, uint p1)
+        public static int ComputeHash32OrdinalIgnoreCase(ref char data, int count, uint p0, uint p1)
         {
             uint ucount = (uint)count; // in chars
             nuint byteOffset = 0; // in bytes
