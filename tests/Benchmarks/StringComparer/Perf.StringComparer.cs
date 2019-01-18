@@ -18,7 +18,7 @@ namespace System.Management.Automation.Unicode
         public static void Main(string[] args)
         {
             var summary = BenchmarkRunner.Run<IntroBenchmarkBaseline>();
-            var comparer = new StringComparerUsingSimpleCaseFolding();
+            var comparer = new SimpleCaseFoldingStringComparer();
             //var r = comparer.Compare("ЯяЫяЯяЯяЯяЯ1", "яЯяЯяЯяЯяЯя2");
             var r = comparer.Compare("CaseFolding1", "cASEfOLDING2");
             Console.WriteLine("Result: {0}", r);
@@ -40,7 +40,7 @@ namespace System.Management.Automation.Unicode
         [ArgumentsSource(nameof(Data))]
         public int SimpleCaseFoldCompare(string StrA, string StrB)
         {
-            var comparer = new StringComparerUsingSimpleCaseFolding();
+            var comparer = new SimpleCaseFoldingStringComparer();
             return comparer.Compare(StrA, StrB);
         }
 

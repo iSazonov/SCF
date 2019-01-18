@@ -10,14 +10,14 @@ using Xunit;
 
 namespace PSTests.Parallel.System.Management.Automation.Unicode
 {
-    public class StringComparerUsingSimpleCaseFoldingTests
+    public class SimpleCaseFoldingStringComparerTests
     {
         // The tests come from CoreFX tests: src/System.Runtime.Extensions/tests/System/StringComparer.cs
 
         [Fact]
         public static void TestOrdinal_EmbeddedNull_ReturnsDifferentHashCodes()
         {
-            StringComparerUsingSimpleCaseFolding sc = new StringComparerUsingSimpleCaseFolding();
+            SimpleCaseFoldingStringComparer sc = new SimpleCaseFoldingStringComparer();
             Assert.NotEqual(sc.GetHashCode("\0AAAAAAAAA"), sc.GetHashCode("\0BBBBBBBBBBBB"));
         }
 
@@ -26,7 +26,7 @@ namespace PSTests.Parallel.System.Management.Automation.Unicode
         [InlineData("BaC", "bAc")]
         public static void TestGetHashCode_ReturnsHashCodes_Equal(string strA, string strB)
         {
-            StringComparerUsingSimpleCaseFolding sc = new StringComparerUsingSimpleCaseFolding();
+            SimpleCaseFoldingStringComparer sc = new SimpleCaseFoldingStringComparer();
             Assert.Equal(sc.GetHashCode(strA), sc.GetHashCode(strB));
             Assert.Equal(sc.GetHashCode((object)strA), sc.GetHashCode((object)strB));
         }
@@ -37,7 +37,7 @@ namespace PSTests.Parallel.System.Management.Automation.Unicode
         [InlineData("Ёлки-Палки", "ёлки-палкА")]
         public static void TestGetHashCode_ReturnsHashCodes_NotEqual(string strA, string strB)
         {
-            StringComparerUsingSimpleCaseFolding sc = new StringComparerUsingSimpleCaseFolding();
+            SimpleCaseFoldingStringComparer sc = new SimpleCaseFoldingStringComparer();
             Assert.NotEqual(sc.GetHashCode(strA), sc.GetHashCode(strB));
             Assert.NotEqual(sc.GetHashCode((object)strA), sc.GetHashCode((object)strB));
         }
@@ -69,7 +69,7 @@ namespace PSTests.Parallel.System.Management.Automation.Unicode
         [InlineData("\uFF3A", "\uFF5A")]
         public static void VerifyStringComparer_Equal(string strA, string strB)
         {
-            StringComparerUsingSimpleCaseFolding sc = new StringComparerUsingSimpleCaseFolding();
+            SimpleCaseFoldingStringComparer sc = new SimpleCaseFoldingStringComparer();
             Assert.True(sc.Equals(strA, strB));
             Assert.True(sc.Equals((object)strA, (object)strB));
             Assert.True(sc.Equals((object)strA, strB));
@@ -83,7 +83,7 @@ namespace PSTests.Parallel.System.Management.Automation.Unicode
         [Fact]
         public static void VerifyStringComparer_Equal_By_Reference()
         {
-            StringComparerUsingSimpleCaseFolding sc = new StringComparerUsingSimpleCaseFolding();
+            SimpleCaseFoldingStringComparer sc = new SimpleCaseFoldingStringComparer();
             string strA = "test string";
             string strB = strA;
 
@@ -161,7 +161,7 @@ namespace PSTests.Parallel.System.Management.Automation.Unicode
         [InlineData("\u0600", "\u05ff", 1)]
         public static void VerifyStringComparer_NotEqual(string strA, string strB, int result)
         {
-            StringComparerUsingSimpleCaseFolding sc = new StringComparerUsingSimpleCaseFolding();
+            SimpleCaseFoldingStringComparer sc = new SimpleCaseFoldingStringComparer();
             Assert.False(sc.Equals(strA, strB));
             Assert.False(sc.Equals((object)strA, (object)strB));
             Assert.False(sc.Equals((object)strA, strB));
@@ -175,7 +175,7 @@ namespace PSTests.Parallel.System.Management.Automation.Unicode
         [Fact]
         public static void VerifyComparer()
         {
-            StringComparerUsingSimpleCaseFolding sc = new StringComparerUsingSimpleCaseFolding();
+            SimpleCaseFoldingStringComparer sc = new SimpleCaseFoldingStringComparer();
             string s1 = "Hello";
             string s1a = "Hello";
             string s1b = "HELLO";
