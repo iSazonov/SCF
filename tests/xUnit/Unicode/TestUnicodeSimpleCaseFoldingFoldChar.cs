@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Management.Automation.Unicode;
-using System.Management.Automation.Unicode.Tests;
+using System.Text.CaseFolding;
+using System.Text.CaseFolding.Tests;
 using Xunit;
 
 namespace PSTests.Parallel.System.Management.Automation.Unicode

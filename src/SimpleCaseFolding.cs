@@ -5,7 +5,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace System.Management.Automation.Unicode
+namespace System.Text.CaseFolding
 {
     /// <summary>
     /// </summary>

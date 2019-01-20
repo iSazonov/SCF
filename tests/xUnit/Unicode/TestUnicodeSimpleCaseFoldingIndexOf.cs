@@ -5,7 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Management.Automation.Unicode;
+using System.Text.CaseFolding;
 using Xunit;
 
 namespace PSTests.Parallel.System.Management.Automation.Unicode

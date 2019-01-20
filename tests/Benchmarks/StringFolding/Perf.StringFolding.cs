@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
-namespace System.Management.Automation.Unicode
+namespace System.Text.CaseFolding
 {
     public class Program
     {

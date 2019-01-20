@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 
 using nuint = System.UInt64;
 
-namespace System.Management.Automation.Unicode
+namespace System.Text.CaseFolding
 {
     public static partial class Marvin
     {

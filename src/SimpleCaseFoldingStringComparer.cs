@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 
-namespace System.Management.Automation.Unicode
+namespace System.Text.CaseFolding
 {
     /// <summary>
     /// String comparer with simple case folding.

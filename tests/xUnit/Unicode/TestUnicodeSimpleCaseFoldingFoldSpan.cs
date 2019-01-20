@@ -5,8 +5,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Management.Automation.Unicode;
-using System.Management.Automation.Unicode.Tests;
+using System.Text.CaseFolding;
+using System.Text.CaseFolding.Tests;
 using Xunit;
 
 namespace PSTests.Parallel.System.Management.Automation.Unicode

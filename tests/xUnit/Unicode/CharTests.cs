@@ -4,11 +4,11 @@
 
 using System.Collections.Generic;
 using System.Globalization;
-using System.Management.Automation.Unicode;
+using System.Text.CaseFolding;
 using System.Text;
 using Xunit;
 
-namespace System.Management.Automation.Unicode.Tests
+namespace System.Text.CaseFolding.Tests
 {
     // The tests come from CoreFX tests: src\System.Runtime\tests\System\
     public class CharTests

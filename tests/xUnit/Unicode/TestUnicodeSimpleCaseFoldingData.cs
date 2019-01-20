@@ -7,7 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 
-namespace System.Management.Automation.Unicode.Tests
+namespace System.Text.CaseFolding.Tests
 {
     // The tests come from CoreFX tests: src\System.Globalization\tests\CharUnicodeInfo\
 
