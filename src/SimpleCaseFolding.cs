@@ -42,12 +42,43 @@ namespace System.Text.CaseFolding
             return ch == 0 ? c : ch;
         }
 
+        /// <summary>
+        /// Simple case fold the char.
+        /// </summary>
+        /// <param name="c">Source char.</param>
+        /// <returns>
+        /// Returns folded char.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe public static char SimpleCaseFold1(char c)
+        {
+            if (c <= 0x5ff)
+            {
+                return MapBelow5FF[c];
+            }
+
+            // var v = L1[c >> 8];
+            // var ch = L3[v + (c & 0xFF)];
+            // Still slow due to border checks.
+            char ch;
+            fixed (ushort *ptrLevel1 = MapLevel1)
+            {
+                fixed (char *ptrData = MapData)
+                {
+                    var v = *(ptrLevel1 + (c >> 8));
+                    ch = *(ptrData + v + (c & 0xFF));
+                }
+            }
+
+            return ch == 0 ? c : ch;
+        }
+
         // Mapping for chars > 0x5ff slowly due to 2-level mapping.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int SimpleCaseFoldCompareAbove05ff(char c1, char c2, ref ushort refMapLevel1, ref char refMapData)
         {
-            Diagnostics.Assert((int)c1 > 0x5ff, "Char should be greater than 0x5ff.");
-            Diagnostics.Assert((int)c2 > 0x5ff, "Char should be greater than 0x5ff.");
+            Debug.Assert((int)c1 > 0x5ff, "Char should be greater than 0x5ff.");
+            Debug.Assert((int)c2 > 0x5ff, "Char should be greater than 0x5ff.");
             var v1 =  Unsafe.Add(ref refMapLevel1, c1 >> 8);
             var ch1 = Unsafe.Add(ref refMapData, v1 + (c1 & 0xFF));
             if (ch1 == 0)
