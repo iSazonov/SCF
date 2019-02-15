@@ -18,7 +18,7 @@ namespace System.Text.CaseFolding
     {
         public static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<IntroBenchmarkBaseline>();
+            var summary = BenchmarkRunner.Run<StringFoldingBenchmark>();
             Console.WriteLine("Result: {0}", SimpleCaseFolding.SimpleCaseFold("cASEfOLDING2"));
             Console.WriteLine("Result: {0}", SimpleCaseFolding.SimpleCaseFold("яЯяЯяЯяЯяЯя2"));
         }
