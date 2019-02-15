@@ -12,13 +12,13 @@ using System.Security.Cryptography;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
-namespace System.Text.CaseFolding
+namespace System.Text.CaseFolding.Benchmarks
 {
     public class Program
     {
         public static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<IntroBenchmarkBaseline>();
+            var summary = BenchmarkRunner.Run<StringComparerBenchmark>();
             var comparer = new SimpleCaseFoldingStringComparer();
             //var r = comparer.Compare("ЯяЫяЯяЯяЯяЯ1", "яЯяЯяЯяЯяЯя2");
             var r = comparer.Compare("CaseFolding1", "cASEfOLDING2");
@@ -27,22 +27,21 @@ namespace System.Text.CaseFolding
     }
 
     [DisassemblyDiagnoser(printAsm: true, printSource: true, recursiveDepth: 3)]
-    [RyuJitX64Job]
-    public class IntroBenchmarkBaseline
+    public class StringComparerBenchmark
     {
         [Benchmark(Baseline = true)]
         [ArgumentsSource(nameof(Data))]
-        public void CoreFXCompare(string StrA, string StrB)
+        public void CoreFXCompare(string strA, string strB)
         {
-            string.Compare(StrA, StrB, StringComparison.OrdinalIgnoreCase);
+            string.Compare(strA, strB, StringComparison.OrdinalIgnoreCase);
         }
 
         [Benchmark]
         [ArgumentsSource(nameof(Data))]
-        public int SimpleCaseFoldCompare(string StrA, string StrB)
+        public int SimpleCaseFoldCompare(string strA, string strB)
         {
             var comparer = new SimpleCaseFoldingStringComparer();
-            return comparer.Compare(StrA, StrB);
+            return comparer.Compare(strA, strB);
         }
 
         public IEnumerable<object[]> Data()

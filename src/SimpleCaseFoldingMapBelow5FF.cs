@@ -7,7 +7,7 @@ namespace System.Text.CaseFolding
     /// <summary>
     /// Simple case folding methods.
     /// </summary>
-    internal static partial class SimpleCaseFolding
+    public static partial class SimpleCaseFolding
 
     {
         private static readonly char[] MapBelow5FF =

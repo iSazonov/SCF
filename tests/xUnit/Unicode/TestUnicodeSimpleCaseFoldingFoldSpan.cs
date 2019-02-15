@@ -9,7 +9,7 @@ using System.Text.CaseFolding;
 using System.Text.CaseFolding.Tests;
 using Xunit;
 
-namespace PSTests.Parallel.System.Management.Automation.Unicode
+namespace System.Text.CaseFolding.Tests
 {
     public class FoldStringAndSpanTests
     {

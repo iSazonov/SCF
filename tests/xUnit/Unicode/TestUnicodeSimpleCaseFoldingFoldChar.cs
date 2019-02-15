@@ -7,7 +7,7 @@ using System.Text.CaseFolding;
 using System.Text.CaseFolding.Tests;
 using Xunit;
 
-namespace PSTests.Parallel.System.Management.Automation.Unicode
+namespace System.Text.CaseFolding.Tests
 {
     public class FoldCharTests
     {
@@ -41,10 +41,6 @@ namespace PSTests.Parallel.System.Management.Automation.Unicode
                 var expectedString = Char.ConvertFromUtf32(expected);
                 var value = Char.ConvertFromUtf32(i);
                 var foldedString = SimpleCaseFolding.SimpleCaseFold(value);
-                if (expectedString != foldedString)
-                {
-                    Console.WriteLine("Q");
-                }
                 Assert.Equal(expectedString, foldedString);
             }
         }

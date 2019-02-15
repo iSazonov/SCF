@@ -25,8 +25,7 @@ namespace System.Text.CaseFolding
     }
 
     [DisassemblyDiagnoser(printAsm: true, printSource: true, recursiveDepth: 3)]
-    [RyuJitX64Job]
-    public class IntroBenchmarkBaseline
+    public class StringFoldingBenchmark
     {
         [Benchmark(Baseline = true)]
         [ArgumentsSource(nameof(Data))]

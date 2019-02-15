@@ -5,11 +5,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.CaseFolding;
 using Xunit;
 
-namespace PSTests.Parallel.System.Management.Automation.Unicode
+namespace System.Text.CaseFolding.Tests
 {
     public class SimpleCaseFoldingStringComparerTests
     {
