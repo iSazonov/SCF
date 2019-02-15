@@ -40,6 +40,28 @@ namespace System.Text.CaseFolding
             return ch == 0 ? c : ch;
         }
 
+        /// <summary>
+        /// Simple case fold the char.
+        /// </summary>
+        /// <param name="c">Source char.</param>
+        /// <returns>
+        /// Returns folded char.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char SimpleCaseFoldTest(char c)
+        {
+            if (c < MapBelow5FF.Length)
+            {
+                return MapBelow5FF[c];
+            }
+
+            // Still slow due to border checks.
+            ushort v = Unsafe.Add(ref s_MapLevel1, c >> 8);
+            char ch = Unsafe.Add(ref s_refMapData, v + (c & 0xFF));
+
+            return ch == 0 ? c : ch;
+        }
+
         // Mapping for chars > 0x5ff slowly due to 2-level mapping.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int SimpleCaseFoldCompareAbove05ff(char c1, char c2, ref ushort refMapLevel1, ref char refMapData)
