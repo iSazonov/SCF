@@ -40,9 +40,17 @@ namespace System.Text.CaseFolding
             {
                 Add(Job.Core
                     .With(new[] { new EnvironmentVariable(JitNoInline, "1") })
-                    .WithTargetCount(20)
-                    .WithUnrollFactor(20)
-                    .With(CsProjCoreToolchain.From(NetCoreAppSettings.NetCoreApp30)));
+//                    .WithTargetCount(48)
+//                    .WithUnrollFactor(16)
+                    .With(CsProjCoreToolchain.From(NetCoreAppSettings.NetCoreApp30))
+                    .WithId("TC Enabled"));
+
+                Add(Job.Core
+                    .With(new[] { new EnvironmentVariable(JitNoInline, "1") })
+//                    .WithTargetCount(48)
+//                    .WithUnrollFactor(16)
+                    .With(CsProjCoreToolchain.From(NetCoreAppSettings.NetCoreApp30))
+                    .WithId("TC Disabled"));
             }
         }
 
